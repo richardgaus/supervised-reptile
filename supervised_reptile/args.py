@@ -4,8 +4,9 @@ Command-line argument parsing.
 
 import argparse
 from functools import partial
+from pathlib import Path
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from .reptile import Reptile, FOML
 

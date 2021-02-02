@@ -5,7 +5,7 @@ datasets.
 
 import random
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from .variables import (interpolate_vars, average_vars, subtract_vars, add_vars, scale_vars,
                         VariableState)

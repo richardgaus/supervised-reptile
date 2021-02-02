@@ -5,7 +5,7 @@ Models for supervised meta-learning.
 from functools import partial
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 DEFAULT_OPTIMIZER = partial(tf.train.AdamOptimizer, beta1=0)
 

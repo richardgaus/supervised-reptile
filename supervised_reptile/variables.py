@@ -3,7 +3,7 @@ Tools for manipulating sets of variables.
 """
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 def interpolate_vars(old_vars, new_vars, epsilon):
     """

@@ -4,7 +4,7 @@ Train a model on miniImageNet.
 
 import random
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from supervised_reptile.args import argument_parser, model_kwargs, train_kwargs, evaluate_kwargs
 from supervised_reptile.eval import evaluate

@@ -5,13 +5,14 @@ Training helpers for supervised meta-learning.
 import os
 import time
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from .reptile import Reptile
 from .variables import weight_decay
 
 # pylint: disable=R0913,R0914
-def train(sess,
+def train(tensorboard_logger,
+          sess,
           model,
           train_set,
           test_set,
@@ -71,6 +72,19 @@ def train(sess,
                 writer.flush()
                 accuracies.append(correct / num_classes)
             log_fn('batch %d: train=%f test=%f' % (i, accuracies[0], accuracies[1]))
+
+            # Write to TensorBoard
+            tensorboard_logger.experiment.add_scalar(
+                'train-test/acc/global_model/mean',
+                accuracies[0],
+                global_step=i
+            )
+            tensorboard_logger.experiment.add_scalar(
+                'test-test/acc/global_model/mean',
+                accuracies[1],
+                global_step=i
+            )
+
         if i % 100 == 0 or i == meta_iters-1:
             saver.save(sess, os.path.join(save_dir, 'model.ckpt'), global_step=i)
         if time_deadline is not None and time.time() > time_deadline:

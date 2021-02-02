@@ -3,8 +3,13 @@ Train a model on Omniglot.
 """
 
 import random
+from pathlib import Path
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+# The usage of tensorflow in this code needs eager execution disabled
+tf.disable_eager_execution()
+
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from supervised_reptile.args import argument_parser, model_kwargs, train_kwargs, evaluate_kwargs
 from supervised_reptile.eval import evaluate
@@ -21,6 +26,18 @@ def main():
     args = argument_parser().parse_args()
     random.seed(args.seed)
 
+    RUN_DIR = Path(__file__).resolve(strict=True).parent.parent / 'mlmi-federated-learning' / 'run'
+    experiment_path = RUN_DIR / 'supervised-reptile' / (
+        f"seed{args.seed};{args.classes}-way{args.shots}-shot;"
+        f"train_shots{args.train_shots}ib{args.inner_batch}ii{args.inner_iters}"
+        f"lr{str(args.learning_rate).replace('.', '')}"
+        f"ms{str(args.meta_step).replace('.', '')}"
+        f"msf{str(args.meta_step_final).replace('.', '')}"
+        f"mb{args.meta_batch}eb{args.eval_batch}"
+        f"{'sgd' if args.sgd else ''}"
+    )
+    tensorboard_logger = TensorBoardLogger(experiment_path.absolute())
+
     train_set, test_set = split_dataset(read_dataset(DATA_DIR))
     train_set = list(augment_dataset(train_set))
     test_set = list(test_set)
@@ -30,15 +47,22 @@ def main():
     with tf.Session() as sess:
         if not args.pretrained:
             print('Training...')
-            train(sess, model, train_set, test_set, args.checkpoint, **train_kwargs(args))
+            train(tensorboard_logger, sess, model, train_set, test_set, args.checkpoint, **train_kwargs(args))
         else:
             print('Restoring from checkpoint...')
             tf.train.Saver().restore(sess, tf.train.latest_checkpoint(args.checkpoint))
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)
-        print('Train accuracy: ' + str(evaluate(sess, model, train_set, **eval_kwargs)))
-        print('Test accuracy: ' + str(evaluate(sess, model, test_set, **eval_kwargs)))
+
+        for label, dataset in zip(['Train', 'Test'], [train_set, test_set]):
+            accuracy = evaluate(sess, model, dataset, **eval_kwargs)
+            tensorboard_logger.experiment.add_scalar(
+                f'final_{label}_acc',
+                accuracy,
+                global_step=0
+            )
+            print(f'{label} accuracy: {accuracy}')
 
 if __name__ == '__main__':
     main()

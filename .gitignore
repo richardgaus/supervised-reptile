@@ -1,6 +1,6 @@
 # Custom output files
 model_checkpoint
-data
+ckpt_o55
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -103,3 +103,5 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# checkpoints
